@@ -1,45 +1,60 @@
 import { NodeViewWrapper } from '@tiptap/react'
 import { useEffect, useState } from 'react'
+import style from './image.module.less'
 
-async function downloadImage(url: string) {
-  const image = await fetch(url)
-  const imageBlog = await image.blob()
-
-  return new File([imageBlog], 'wtf.png')
-}
-
-function readImage(image: File) {
-  console.log(image)
-  return new Promise(resolve => {
-    const reader = new FileReader()
-
-    reader.onload = readerEvent => {
-      resolve(readerEvent.target?.result)
-    }
-    reader.readAsDataURL(image)
-  })
-}
-
-export default function ImageComp(props: any) {
+function useImage(originalUrl: string) {
   const [uploading, setUploading] = useState(false)
-  const [imgSrc, setImgSrc] = useState(props.node.attrs.src)
+  const [imgSrc, setImgSrc] = useState(originalUrl)
+
+  function readImage(image: File) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+
+      reader.onload = readerEvent => {
+        resolve(readerEvent.target?.result)
+      }
+      reader.onerror = reject
+      reader.readAsDataURL(image)
+    })
+  }
 
   useEffect(() => {
     setUploading(true)
-    downloadImage(props.node.attrs.src)
-      .then(file => readImage(file))
+    const controller = new AbortController()
+
+    fetch(originalUrl, { signal: controller.signal })
+      .then(res => res.blob())
+      .then(blob => readImage(new File([blob], 'test.png')))
       .then(src => {
         setImgSrc(src as string)
-        props.updateAttributes({
-          src,
-        })
         setUploading(false)
       })
+
+    return () => {
+      controller.abort()
+    }
   }, [])
 
+  return {
+    uploading,
+    imgSrc,
+  }
+}
+
+export default function ImageComp(props: any) {
+  const { uploading, imgSrc } = useImage(props.node.attrs.src)
+
+  useEffect(() => {
+    props.updateAttributes({
+      src: imgSrc,
+    })
+  }, [imgSrc])
+
   return (
-    <NodeViewWrapper className="react-component">
-      {uploading ? <div>loading</div> : <img src={imgSrc} alt="" />}
+    <NodeViewWrapper>
+      <div className={uploading ? style.uploading : ''}>
+        <img src={imgSrc} style={{ maxWidth: '100%' }} alt="" />
+      </div>
     </NodeViewWrapper>
   )
 }

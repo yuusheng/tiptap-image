@@ -4,30 +4,21 @@ import { ReactNodeViewRenderer } from '@tiptap/react'
 import Component from './ImageComp'
 
 export default Node.create({
-  name: 'imgTest',
-
+  name: 'uploadingImage',
   group: 'block',
-
   atom: true,
 
   addAttributes() {
     return {
-      src: {
-        // default: '',
-      },
+      src: {},
     }
   },
-
   parseHTML() {
-    return [
-      {
-        tag: 'img',
-      },
-    ]
+    return [{ tag: 'img' }]
   },
 
   renderHTML({ HTMLAttributes }) {
-    return ['img', mergeAttributes(HTMLAttributes)]
+    return ['img', mergeAttributes({ ...HTMLAttributes, style: 'max-width: 100%' })]
   },
 
   addNodeView() {
