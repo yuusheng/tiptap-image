@@ -2,7 +2,7 @@ import Document from '@tiptap/extension-document'
 import Paragraph from '@tiptap/extension-paragraph'
 import Text from '@tiptap/extension-text'
 import { EditorContent, useEditor } from '@tiptap/react'
-import Image from './tiptap/Image'
+import Image from '../../../src'
 import style from './App.module.less'
 
 const App = () => {
